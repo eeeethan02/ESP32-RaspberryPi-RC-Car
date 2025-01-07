@@ -2,17 +2,7 @@ class Dimmer;
 class Off;
 
 #include <wiringPi.h>
-#include <softPwm.h>
-#include <iostream>
-#include <cstdlib>
-#include <bcm2835.h>
-#include "/usr/local/include/RF24/RF24.h"
-#include <mqtt/client.h>
-#include <mqtt/message.h>
-#include <chrono>
-#include <thread>
-
-// Undefine macros that conflict
+#include <wiringPiSPI.h>
 #undef INT_EDGE_FALLING
 #undef INT_EDGE_RISING
 #undef INT_EDGE_BOTH
@@ -22,8 +12,15 @@ class Off;
 #undef OUTPUT
 #undef delay
 #undef delayMicroseconds
-
-#define OUTPUT 1
+#include <softPwm.h>
+#include <iostream>
+#include <cstdlib>
+//#include <bcm2835.h>
+#include "/usr/local/include/RF24/RF24.h"
+#include <mqtt/client.h>
+#include <mqtt/message.h>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 using namespace mqtt;
@@ -76,7 +73,7 @@ public:
     }
     State* getNextState() override {
 
-        return new Dimmer();  // This will work now
+        return new Dimmer();
     }
 };
 
@@ -90,7 +87,7 @@ public:
         softPwmWrite(TAIL_LIGHTS, EIGHT_BIT * 0.5);
     }
     State* getNextState() override {
-        return new Off();  // This will work now
+        return new Off();
     }
 };
 
@@ -147,22 +144,18 @@ class lightController {
 
 };
 
-/* MQQT and Telemtry*/
+/* MQTT and Telemtry*/
     string ip = "localhost:1883";
     string id = "publisher1";
 
 int main(){
     /* Check wiringPi Initialization */
     if (wiringPiSetupGpio() < 0){
-        std::cout << "Pigpio initialization failed." << std::endl;
+        std::cout << "WiringPi initialization failed." << std::endl;
         return EXIT_FAILURE;
     }
 
     /* SPI and RF24*/
-    if (!bcm2835_init()) {
-    cout << "bcm2835 initialization failed!" << endl;
-    return 1;
-    }
     if (!radio.begin()) {
     cout << "RF24 initialization failed!" << endl;
     return 1;
@@ -219,13 +212,12 @@ int main(){
             }
 
         /* MQQT and Telemetry */
-        if (lastTelemetryUpdate - millis() >= 500){
+        if (millis() - lastTelemetryUpdate >= 500){
             telemetry->set_payload("Speed: " + std::to_string(speed) + ", Battery Voltage: " + std::to_string(batteryVoltage) + ", Battery Temperature: " + std::to_string(batteryTemperature));
             client1.publish(telemetry);
             lastTelemetryUpdate = millis();
         }
         
     }
-    bcm2835_close();
     client1.disconnect();
 }
