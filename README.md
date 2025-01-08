@@ -12,7 +12,7 @@ Prerequisites
   Before running the code, ensure that the following components and software are installed on your Raspberry Pi and ESP32:
 
 Raspberry Pi Setup
-  Operating System: Raspbian (latest version)
+  Operating System: Raspberry Pi OS
 Libraries:
   WiringPi: Used for controlling the GPIO pins for PWM signals.
   RF24: For SPI communication with the RF24 module.
